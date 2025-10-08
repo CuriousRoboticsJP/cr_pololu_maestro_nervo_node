@@ -6,7 +6,9 @@ SHELL [ "/bin/bash" , "-c" ]
 RUN sudo apt update && sudo apt upgrade -y
 
 # Install essential packages
-RUN sudo apt install -y wget
+RUN sudo apt install -y \
+    wget \
+    usbutils
 
 # Create overlay workspace
 WORKDIR /root/ros_ws/src

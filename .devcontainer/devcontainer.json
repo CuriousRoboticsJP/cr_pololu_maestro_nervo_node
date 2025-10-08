@@ -13,7 +13,9 @@
                 "redhat.vscode-yaml",
                 "mhutchie.git-graph",
                 "DotJoshJohnson.xml",
-                "Ranch-Hand-Robotics.rde-pack"
+                "Ranch-Hand-Robotics.rde-pack",
+                "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools-extension-pack"
             ]
         }
     }

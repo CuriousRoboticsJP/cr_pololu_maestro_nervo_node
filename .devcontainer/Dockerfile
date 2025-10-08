@@ -10,6 +10,10 @@ RUN sudo apt install -y \
     wget \
     usbutils
 
+# Install essential ROS components
+RUN sudo apt install -y \
+    ros-${ROS_DISTRO}-sensor-msgs
+
 # Create overlay workspace
 WORKDIR /root/ros_ws/src
 COPY packages.repos .

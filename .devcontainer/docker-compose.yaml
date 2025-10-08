@@ -9,8 +9,9 @@ services:
     network_mode: host
     stdin_open: true
     tty: true
+    working_dir: /root/ros_ws/src/CR-Pololu_Maestro_Servo_Node
+    volumes:
+      - ..:/root/ros_ws/src/CR-Pololu_Maestro_Servo_Node
+      - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
       - DISPLAY=host.docker.internal:0.0
-    volumes:
-      - ..:/root/ros_ws/src/
-      - /tmp/.X11-unix:/tmp/.X11-unix

@@ -34,6 +34,7 @@ public:
         this->servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->GetServoCount()]();
         this->servoCommand = new double[this->maestroDevice->GetServoCount()]();
         std::fill(this->servoCommand, this->servoCommand + this->maestroDevice->GetServoCount(), 0.0);
+        this->WriteCommand();
 
         // create a reentrant callback group
         auto reentrant_group = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
@@ -50,6 +51,7 @@ public:
                 this->servoCommand[3] = msg->middle_pos_cmd;
                 this->servoCommand[4] = msg->ring_pos_cmd;
                 this->servoCommand[5] = msg->little_pos_cmd;
+                this->WriteCommand();
             }, sub_options);
 
         // hand state publisher
@@ -60,7 +62,6 @@ public:
             {
                 this->ReadState();
                 this->pubState();
-                this->WriteCommand();
             });
     }
 

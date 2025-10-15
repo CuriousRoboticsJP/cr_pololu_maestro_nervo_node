@@ -15,7 +15,7 @@ using namespace std::chrono_literals;
 class MaestroNode : public rclcpp::Node
 {
 public:
-    MaestroNode(const rclcpp::NodeOptions &options) : Node("CR_Servo", options)
+    MaestroNode(const rclcpp::NodeOptions &options) : Node("CR_Servo_Node", options)
     {
         this->maestroDevice = MaestroDevice::Open(MaestroDevice::ProductID_6ch);
         if (!this->maestroDevice)
@@ -71,23 +71,23 @@ private:
         msg_HandState.little = sensor_msgs::msg::JointState();
 
         msg_HandState.thumb.name.push_back("thumb");
-        msg_HandState.thumb.position.push_back(this->servoStatus[0].target);
+        msg_HandState.thumb.position.push_back(this->servoStatus[0].position);
         msg_HandState.thumb.velocity.push_back(this->servoStatus[0].speed);
 
         msg_HandState.index.name.push_back("index");
-        msg_HandState.index.position.push_back(this->servoStatus[1].target);
+        msg_HandState.index.position.push_back(this->servoStatus[1].position);
         msg_HandState.index.velocity.push_back(this->servoStatus[0].speed);
 
         msg_HandState.middle.name.push_back("middle");
-        msg_HandState.middle.position.push_back(this->servoStatus[2].target);
+        msg_HandState.middle.position.push_back(this->servoStatus[2].position);
         msg_HandState.middle.velocity.push_back(this->servoStatus[0].speed);
 
         msg_HandState.ring.name.push_back("ring");
-        msg_HandState.ring.position.push_back(this->servoStatus[3].target);
+        msg_HandState.ring.position.push_back(this->servoStatus[3].position);
         msg_HandState.ring.velocity.push_back(this->servoStatus[0].speed);
 
         msg_HandState.little.name.push_back("little");
-        msg_HandState.little.position.push_back(this->servoStatus[4].target);
+        msg_HandState.little.position.push_back(this->servoStatus[4].position);
         msg_HandState.little.velocity.push_back(this->servoStatus[0].speed);
 
         this->pub_hand_state->publish(msg_HandState);
@@ -98,8 +98,7 @@ private:
         MaestroProtocol::ServoStatus *tmp_servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->servoCount];
         if (this->maestroDevice->GetServoStatus(tmp_servoStatus))
         {
-            RCLCPP_INFO(get_logger(), "Succeeded to get servo status!");
-            for (size_t i = 0; i < this->maestroDevice->servoCount; i++)
+            for (auto i = 0; i < this->maestroDevice->servoCount; i++)
             {
                 this->servoStatus[i].position = tmp_servoStatus[i].position;
                 this->servoStatus[i].target = tmp_servoStatus[i].target;

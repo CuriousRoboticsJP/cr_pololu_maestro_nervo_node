@@ -96,8 +96,6 @@ public:
 
     static MaestroDevice *Open(uint16_t productID = MaestroDevice::ProductID_6ch, const char *serial = NULL);
 
-    int servoCount;
-
     bool InitializeServos();
 
     bool SetPosition(uint8_t servo, uint16_t position);
@@ -106,8 +104,18 @@ public:
 
     bool ResetErrors();
 
+    double ConvertToJointPosition(uint16_t position);
+
+    uint16_t ConvertToPWMPosition(double position);
+
+    int GetServoCount() { return this -> servoCount; };
+
 protected:
     MaestroDevice();
+
+    uint servoCount;
+    uint16_t servoMin;
+    uint16_t servoMax;
 
 };
 

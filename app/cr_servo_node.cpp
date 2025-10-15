@@ -29,7 +29,7 @@ public:
         }
 
         // initialize servo status
-        this->servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->servoCount];
+        this->servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->GetServoCount()];
 
         // hand command subscriber
 
@@ -71,34 +71,34 @@ private:
         msg_HandState.little = sensor_msgs::msg::JointState();
 
         msg_HandState.thumb.name.push_back("thumb");
-        msg_HandState.thumb.position.push_back(this->servoStatus[0].position);
+        msg_HandState.thumb.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[0].position));
         msg_HandState.thumb.velocity.push_back(this->servoStatus[0].speed);
 
         msg_HandState.index.name.push_back("index");
-        msg_HandState.index.position.push_back(this->servoStatus[1].position);
-        msg_HandState.index.velocity.push_back(this->servoStatus[0].speed);
+        msg_HandState.index.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[1].position));
+        msg_HandState.index.velocity.push_back(this->servoStatus[1].speed);
 
         msg_HandState.middle.name.push_back("middle");
-        msg_HandState.middle.position.push_back(this->servoStatus[2].position);
-        msg_HandState.middle.velocity.push_back(this->servoStatus[0].speed);
+        msg_HandState.middle.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[2].position));
+        msg_HandState.middle.velocity.push_back(this->servoStatus[2].speed);
 
         msg_HandState.ring.name.push_back("ring");
-        msg_HandState.ring.position.push_back(this->servoStatus[3].position);
-        msg_HandState.ring.velocity.push_back(this->servoStatus[0].speed);
+        msg_HandState.ring.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[3].position));
+        msg_HandState.ring.velocity.push_back(this->servoStatus[3].speed);
 
         msg_HandState.little.name.push_back("little");
-        msg_HandState.little.position.push_back(this->servoStatus[4].position);
-        msg_HandState.little.velocity.push_back(this->servoStatus[0].speed);
+        msg_HandState.little.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[4].position));
+        msg_HandState.little.velocity.push_back(this->servoStatus[4].speed);
 
         this->pub_hand_state->publish(msg_HandState);
     }
 
     void ReadState()
     {
-        MaestroProtocol::ServoStatus *tmp_servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->servoCount];
+        MaestroProtocol::ServoStatus *tmp_servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->GetServoCount()];
         if (this->maestroDevice->GetServoStatus(tmp_servoStatus))
         {
-            for (auto i = 0; i < this->maestroDevice->servoCount; i++)
+            for (auto i = 0; i < this->maestroDevice->GetServoCount(); i++)
             {
                 this->servoStatus[i].position = tmp_servoStatus[i].position;
                 this->servoStatus[i].target = tmp_servoStatus[i].target;

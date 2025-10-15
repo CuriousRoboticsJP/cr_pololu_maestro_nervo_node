@@ -30,6 +30,10 @@ MaestroDevice *MaestroDevice::Open(uint16_t productID, const char *serial)
         return NULL;
     }
 
+    // load parameters
+    maestroDevice->servoMin = 4000;
+    maestroDevice->servoMax = 8000;
+
     // initialize the device
     maestroDevice->InitializeServos();
 
@@ -45,18 +49,18 @@ bool MaestroDevice::InitializeServos()
 
 bool MaestroDevice::SetPosition(uint8_t servo, uint16_t position)
 {
-    printf("[Maestro] set servo=%u position=%u\n", (uint32_t)servo, (uint32_t)position);
-    return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_SET_TARGET, position * 4, servo);
+    printf("[Maestro] set servo=%u position=%u\n", servo, position);
+    return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_SET_TARGET, position, servo);
 }
 
 bool MaestroDevice::GetServoStatus(MaestroProtocol::ServoStatus *servoStatus)
 {
-    const int servoDataSize = sizeof(MaestroProtocol::MaestroVariables) + (this->servoCount * sizeof(MaestroProtocol::ServoStatus));
+    const int servoDataSize = sizeof(MaestroProtocol::MaestroVariables) + (this->GetServoCount() * sizeof(MaestroProtocol::ServoStatus));
     uint8_t *data = new uint8_t[servoDataSize];
     bool ret = this->DataTransfer(0xC0, MaestroProtocol::REQUEST_GET_VARIABLES, data, servoDataSize);
     if (ret)
     {
-        for (int i = 0; i < this->servoCount; i++)
+        for (int i = 0; i < this->GetServoCount(); i++)
         {
             servoStatus[i] = *(MaestroProtocol::ServoStatus*)(data + sizeof(MaestroProtocol::MaestroVariables) + sizeof(MaestroProtocol::ServoStatus) + i);
         }
@@ -71,4 +75,14 @@ bool MaestroDevice::ResetErrors()
     if (!this->ControlTransfer(0x40, MaestroProtocol::REQUEST_CLEAR_ERRORS, 0, 0))
         return false;
     return true;
+}
+
+double MaestroDevice::ConvertToJointPosition(uint16_t position)
+{
+    return ((position / 4) - this->servoMin) / (this->servoMax - this->servoMin);
+}
+
+uint16_t MaestroDevice::ConvertToPWMPosition(double position)
+{
+    return 4 * (position * (this->servoMax - this->servoMin) + this->servoMin);
 }

@@ -7,12 +7,13 @@ MaestroDevice::MaestroDevice() : USB_Device()
 {
 }
 
-MaestroDevice *MaestroDevice::Open(uint16_t productID, const char *serial)
+MaestroDevice *MaestroDevice::Open(MaestroDevice::ProductID productID, const char *serial)
 {
     // check for supported product
     MaestroDevice *maestroDevice = new MaestroDevice();
-    if (productID == MaestroDevice::ProductID_6ch)
+    if (MaestroDevice::ProductID::Maestro_6ch == productID)
     {
+        maestroDevice->productID = productID;
         maestroDevice->servoCount = 6;
     }
     else
@@ -24,7 +25,7 @@ MaestroDevice *MaestroDevice::Open(uint16_t productID, const char *serial)
 
     // open the connection
     USB_Device *usbDevice = (USB_Device *)maestroDevice;
-    if (!usbDevice->Open(MaestroDevice::VendorID, productID, serial))
+    if (!usbDevice->Open(MaestroDevice::VendorID, (u_int16_t)productID, serial))
     {
         delete maestroDevice;
         return NULL;

@@ -89,12 +89,16 @@ public:
 class MaestroDevice : public USB_Device
 {
 public:
-    static const uint16_t VendorID = 0x1FFB;     // Pololu Corporation
-    static const uint16_t ProductID_6ch = 0x89;  // Maestro 6-channel
-    static const uint16_t ProductID_12ch = 0x8A; // Maestro 12-channel
-    static const uint16_t ProductID_18ch = 0x8B; // Maestro 18-channel
+    enum class ProductID : uint16_t
+    {
+        Maestro_6ch = 0x89,  // Maestro 6-channel
+        Maestro_12ch = 0x8A, // Maestro 12-channel
+        Maestro_18ch = 0x8B, // Maestro 18-channel
+    };
 
-    static MaestroDevice *Open(uint16_t productID = MaestroDevice::ProductID_6ch, const char *serial = NULL);
+    static const uint16_t VendorID = 0x1FFB;     // Pololu Corporation
+
+    static MaestroDevice *Open(MaestroDevice::ProductID productID = MaestroDevice::ProductID::Maestro_6ch, const char *serial = NULL);
 
     bool InitializeServos();
 
@@ -108,11 +112,14 @@ public:
 
     uint16_t ConvertToPWMPosition(double position);
 
-    int GetServoCount() { return this -> servoCount; };
+    MaestroDevice::ProductID GetProductID() { return this->productID; };
+
+    int GetServoCount() { return this->servoCount; };
 
 protected:
     MaestroDevice();
 
+    MaestroDevice::ProductID productID;
     uint servoCount;
     uint16_t servoMin;
     uint16_t servoMax;

@@ -17,7 +17,7 @@ class MaestroNode : public rclcpp::Node
 public:
     MaestroNode(const rclcpp::NodeOptions &options) : Node("CR_Servo_Node", options)
     {
-        this->maestroDevice = MaestroDevice::Open(MaestroDevice::ProductID_6ch);
+        this->maestroDevice = MaestroDevice::Open(MaestroDevice::ProductID::Maestro_6ch);
         if (!this->maestroDevice)
         {
             RCLCPP_ERROR(get_logger(), "Failed to open Pololu Maestro USB device!");

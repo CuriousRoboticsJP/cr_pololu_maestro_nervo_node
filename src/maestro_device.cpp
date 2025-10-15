@@ -36,6 +36,7 @@ MaestroDevice *MaestroDevice::Open(MaestroDevice::ProductID productID, const cha
     maestroDevice->servoMax = 2000;
 
     // initialize the device
+    maestroDevice->ResetErrors();
     maestroDevice->InitializeServos();
 
     return maestroDevice;
@@ -50,8 +51,13 @@ bool MaestroDevice::InitializeServos()
 
 bool MaestroDevice::SetPosition(uint8_t servo, uint16_t position)
 {
-    printf("[Maestro] set servo=%u position=%u\n", servo, position);
-    return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_SET_TARGET, position, servo);
+    if(!this->ControlTransfer(0x40, MaestroProtocol::REQUEST_SET_TARGET, position, servo))
+    {
+        printf("[Maestro] Failed set servo=%u position=%u\n", servo, position);
+        return false;
+    }
+
+    return true;
 }
 
 bool MaestroDevice::GetServoStatus(MaestroProtocol::ServoStatus *servoStatus)
@@ -61,7 +67,7 @@ bool MaestroDevice::GetServoStatus(MaestroProtocol::ServoStatus *servoStatus)
     bool ret = this->DataTransfer(0xC0, MaestroProtocol::REQUEST_GET_VARIABLES, data, servoDataSize);
     if (ret)
     {
-        for (int i = 0; i < this->GetServoCount(); i++)
+        for (auto i = 0; i < this->GetServoCount(); i++)
         {
             servoStatus[i] = *(MaestroProtocol::ServoStatus*)(data + sizeof(MaestroProtocol::MaestroVariables) + sizeof(MaestroProtocol::ServoStatus) * i);
         }
@@ -73,9 +79,7 @@ bool MaestroDevice::GetServoStatus(MaestroProtocol::ServoStatus *servoStatus)
 bool MaestroDevice::ResetErrors()
 {
     printf("[Maestro] Resetting errors ...\n");
-    if (!this->ControlTransfer(0x40, MaestroProtocol::REQUEST_CLEAR_ERRORS, 0, 0))
-        return false;
-    return true;
+    return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_CLEAR_ERRORS, 0, 0);
 }
 
 double MaestroDevice::ConvertToJointPosition(uint16_t position)

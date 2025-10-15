@@ -32,8 +32,8 @@ MaestroDevice *MaestroDevice::Open(MaestroDevice::ProductID productID, const cha
     }
 
     // load parameters
-    maestroDevice->servoMin = 4000;
-    maestroDevice->servoMax = 8000;
+    maestroDevice->servoMin = 1000;
+    maestroDevice->servoMax = 2000;
 
     // initialize the device
     maestroDevice->InitializeServos();
@@ -63,7 +63,7 @@ bool MaestroDevice::GetServoStatus(MaestroProtocol::ServoStatus *servoStatus)
     {
         for (int i = 0; i < this->GetServoCount(); i++)
         {
-            servoStatus[i] = *(MaestroProtocol::ServoStatus*)(data + sizeof(MaestroProtocol::MaestroVariables) + sizeof(MaestroProtocol::ServoStatus) + i);
+            servoStatus[i] = *(MaestroProtocol::ServoStatus*)(data + sizeof(MaestroProtocol::MaestroVariables) + sizeof(MaestroProtocol::ServoStatus) * i);
         }
     }
 
@@ -80,7 +80,7 @@ bool MaestroDevice::ResetErrors()
 
 double MaestroDevice::ConvertToJointPosition(uint16_t position)
 {
-    return ((position / 4) - this->servoMin) / (this->servoMax - this->servoMin);
+    return (std::max((position / 4) - this->servoMin, 0)) / (this->servoMax - this->servoMin);
 }
 
 uint16_t MaestroDevice::ConvertToPWMPosition(double position)

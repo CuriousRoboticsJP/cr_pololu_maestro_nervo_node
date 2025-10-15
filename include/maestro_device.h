@@ -27,8 +27,9 @@ public:
     };
 
 
-    /// Represents the non-channel-specific variables that can be read from
-    /// a Micro Maestro using REQUEST_GET_VARIABLES.
+    /// Represents the variables that can be read from
+    /// a Micro Maestro or Mini Maestro using REQUEST_GET_VARIABLES,
+    /// excluding channel information, the stack, and the call stack.
     struct MaestroVariables
     {
         /// The number of values on the data stack (0-32).  A value of 0 means the stack is empty.
@@ -64,9 +65,11 @@ public:
         ///     (used to implement step-through debugging features)
         uint8_t scriptDone;
 
-        /// Meaningless byte to protect the program from call stack overflows.
-        /// <remarks>This is public to avoid mono warning CS0169.</remarks>
-        uint8_t buffer2;
+        /// The performance flag register.  Each bit represents a different flag.
+        /// If it is 1, then it means that the flag occurred some time since the last
+        /// getVariables request.  This register is always 0 for the Micro Maestro
+        /// because performance flags only apply to the Mini Maestros.
+        uint8_t performanceFlags;
 
         // NOTE: after these variables, 6 copies of servoSetting follow on the Micro Maestro.
     };

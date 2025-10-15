@@ -98,6 +98,8 @@ public:
 
     int servoCount;
 
+    bool InitializeServos();
+
     bool SetPosition(uint8_t servo, uint16_t position);
 
     bool GetServoStatus(MaestroProtocol::ServoStatus *servoStatus);

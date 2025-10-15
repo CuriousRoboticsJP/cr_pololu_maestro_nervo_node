@@ -28,9 +28,17 @@ MaestroDevice *MaestroDevice::Open(uint16_t productID, const char *serial)
     }
 
     // initialize the device
+    maestroDevice->InitializeServos();
 
     return maestroDevice;
 }
+
+bool MaestroDevice::InitializeServos()
+{
+    printf("[Maestro] Reinitializing device ...\n");
+    return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_REINITIALIZE, 0, 0);
+}
+
 
 bool MaestroDevice::SetPosition(uint8_t servo, uint16_t position)
 {
@@ -56,6 +64,7 @@ bool MaestroDevice::GetServoStatus(MaestroProtocol::ServoStatus *servoStatus)
 
 bool MaestroDevice::ResetErrors()
 {
+    printf("[Maestro] Resetting errors ...\n");
     if (!this->ControlTransfer(0x40, MaestroProtocol::REQUEST_CLEAR_ERRORS, 0, 0))
         return false;
     return true;

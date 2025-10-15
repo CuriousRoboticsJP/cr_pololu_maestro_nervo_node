@@ -1,5 +1,8 @@
 #include "maestro_device.h"
 
+#include <chrono>
+#include <thread>
+
 MaestroDevice::MaestroDevice() : USB_Device()
 {
 }
@@ -37,8 +40,8 @@ bool MaestroDevice::InitializeServos()
 {
     printf("[Maestro] Reinitializing device ...\n");
     return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_REINITIALIZE, 0, 0);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
-
 
 bool MaestroDevice::SetPosition(uint8_t servo, uint16_t position)
 {

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
+#include <mutex>
 #include <stdexcept>
 
 using namespace std::chrono_literals;
@@ -31,9 +32,10 @@ public:
         }
 
         // initialize servo data
-        this->servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->GetServoCount()]();
         this->servoCommand = new double[this->maestroDevice->GetServoCount()]();
         std::fill(this->servoCommand, this->servoCommand + this->maestroDevice->GetServoCount(), 0.0);
+        this->servoState = new double[this->maestroDevice->GetServoCount()]();
+        std::fill(this->servoState, this->servoState + this->maestroDevice->GetServoCount(), 0.0);
         this->WriteCommand();
 
         // create a reentrant callback group
@@ -45,28 +47,36 @@ public:
         this->sub_hand_command = this->create_subscription<cr_hand_interfaces::msg::HandCommand>("/hand_command", 10,
             [this](const cr_hand_interfaces::msg::HandCommand::SharedPtr msg)
             {
+                this->rx_.try_lock();
                 this->servoCommand[0] = msg->palm_pos_cmd;
                 this->servoCommand[1] = msg->thumb_pos_cmd;
                 this->servoCommand[2] = msg->index_pos_cmd;
                 this->servoCommand[3] = msg->middle_pos_cmd;
                 this->servoCommand[4] = msg->ring_pos_cmd;
                 this->servoCommand[5] = msg->little_pos_cmd;
-                this->WriteCommand();
+                this->rx_.unlock();
             }, sub_options);
 
         // hand state publisher
         this->pub_hand_state = this->create_publisher<cr_hand_interfaces::msg::HandState>("/hand_state", 10);
-        this->exec_state_timer_ = create_wall_timer(
+        this->exec_state_timer_ = this->create_wall_timer(
             std::chrono::milliseconds(this->time_pub_state_),
             [this]()
             {
-                this->ReadState();
+                // this->ReadState();
                 this->pubState();
+                this->WriteCommand();
             });
     }
 
     ~MaestroNode()
     {
+        // explicitly destroy ros objects
+        this->sub_hand_command.reset();
+        this->exec_state_timer_.reset();
+        this->pub_hand_state.reset();
+
+        // destroy the maestro device handle
         if (this->maestroDevice != NULL)
         {
             delete this->maestroDevice;
@@ -81,8 +91,10 @@ private:
     rclcpp::Subscription<cr_hand_interfaces::msg::HandCommand>::SharedPtr sub_hand_command;
 
     MaestroDevice *maestroDevice;
-    MaestroProtocol::ServoStatus *servoStatus;
     double *servoCommand;
+    double *servoState;
+    std::mutex rx_;
+    std::mutex tx_;
 
     void pubState()
     {
@@ -94,50 +106,40 @@ private:
         msg_HandState.ring = sensor_msgs::msg::JointState();
         msg_HandState.little = sensor_msgs::msg::JointState();
 
+        this->tx_.try_lock();
         msg_HandState.palm.name.push_back("palm");
-        msg_HandState.palm.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[0].position));
+        msg_HandState.palm.position.push_back(this->servoState[0]);
 
         msg_HandState.thumb.name.push_back("thumb");
-        msg_HandState.thumb.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[1].position));
+        msg_HandState.thumb.position.push_back(this->servoState[1]);
 
         msg_HandState.index.name.push_back("index");
-        msg_HandState.index.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[2].position));
+        msg_HandState.index.position.push_back(this->servoState[2]);
 
         msg_HandState.middle.name.push_back("middle");
-        msg_HandState.middle.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[3].position));
+        msg_HandState.middle.position.push_back(this->servoState[3]);
 
         msg_HandState.ring.name.push_back("ring");
-        msg_HandState.ring.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[4].position));
+        msg_HandState.ring.position.push_back(this->servoState[4]);
 
         msg_HandState.little.name.push_back("little");
-        msg_HandState.little.position.push_back(this->maestroDevice->ConvertToJointPosition(this->servoStatus[5].position));
+        msg_HandState.little.position.push_back(this->servoState[5]);
+        this->tx_.unlock();
 
         this->pub_hand_state->publish(msg_HandState);
     }
 
-    void ReadState()
-    {
-        MaestroProtocol::ServoStatus *tmp_servoStatus = new MaestroProtocol::ServoStatus[this->maestroDevice->GetServoCount()];
-        if (this->maestroDevice->GetServoStatus(tmp_servoStatus))
-        {
-            for (auto i = 0; i < this->maestroDevice->GetServoCount(); i++)
-            {
-                this->servoStatus[i].position = tmp_servoStatus[i].position;
-                this->servoStatus[i].target = tmp_servoStatus[i].target;
-                this->servoStatus[i].speed = tmp_servoStatus[i].speed;
-                this->servoStatus[i].acceleration = tmp_servoStatus[i].acceleration;
-                printf("[Maestro] get servo=%u position=%u target=%u speed=%u\n",
-                     i, tmp_servoStatus[i].position, tmp_servoStatus[i].target, tmp_servoStatus[i].speed);
-            }
-        }
-    }
-
     void WriteCommand()
     {
+        this->rx_.try_lock();
+        this->tx_.try_lock();
         for (auto i = 0; i < this->maestroDevice->GetServoCount(); i++)
         {
             this->maestroDevice->SetPosition(i, this->maestroDevice->ConvertToPWMPosition(this->servoCommand[i]));
+            this->servoState[i] = this->servoCommand[i];
         }
+        this->tx_.unlock();
+        this->rx_.unlock();
     }
 };
 

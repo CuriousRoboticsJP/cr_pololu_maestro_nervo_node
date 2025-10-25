@@ -1,4 +1,4 @@
-# CR-Pololu_Maestro_Servo_Node
+# cr_pololu_maestro_nervo_node
 ROS2 node to connect with the Pololu Maestro Servo controller.
 
 ## Requirements

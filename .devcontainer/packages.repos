@@ -1,5 +1,5 @@
 repositories:
   cr_hand_interfaces:
     type: git
-    url: https://github.com/CuriousRoboticsJP/cr_hand_interfaces.git
+    url: https://github.com/xmeloth/cr_hand_interfaces.git
     version: humble

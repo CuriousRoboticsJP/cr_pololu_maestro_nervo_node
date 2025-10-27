@@ -5,6 +5,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+
 #
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -20,7 +21,7 @@ file(GLOB src_list ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 
 #
-# Node
+# Servo Node
 add_executable(cr_servo_node app/cr_servo_node.cpp ${src_list})
 target_compile_features(cr_servo_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(cr_servo_node PUBLIC
@@ -32,6 +33,30 @@ ament_target_dependencies(cr_servo_node
   rclcpp
   sensor_msgs
   cr_hand_interfaces
+)
+
+
+#
+# Test Node
+add_library(test_actuate SHARED test/test_actuate.cpp)
+target_compile_features(test_actuate PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(test_actuate
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  cr_hand_interfaces
+)
+rclcpp_components_register_node(
+    test_actuate
+    PLUGIN "TestMaestroNode"
+    EXECUTABLE test_cr_servo_node
+)
+ament_export_targets(export_test_actuate)
+install(TARGETS test_actuate
+        EXPORT export_test_actuate
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
 )
 
 

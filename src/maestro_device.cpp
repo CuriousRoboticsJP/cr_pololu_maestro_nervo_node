@@ -32,7 +32,7 @@ MaestroDevice *MaestroDevice::Open(MaestroDevice::ProductID productID, const cha
     }
 
     // load parameters
-    maestroDevice->servoMin = 1000;
+    maestroDevice->servoMin = 992;
     maestroDevice->servoMax = 2000;
 
     // initialize the device
@@ -45,8 +45,9 @@ MaestroDevice *MaestroDevice::Open(MaestroDevice::ProductID productID, const cha
 bool MaestroDevice::InitializeServos()
 {
     printf("[Maestro] Reinitializing device ...\n");
-    return this->ControlTransfer(0x40, MaestroProtocol::REQUEST_REINITIALIZE, 0, 0);
+    auto ret_val = this->ControlTransfer(0x40, MaestroProtocol::REQUEST_REINITIALIZE, 0, 0);
     std::this_thread::sleep_for(std::chrono::seconds(2));
+    return ret_val;
 }
 
 bool MaestroDevice::SetPosition(uint8_t servo, uint16_t position)

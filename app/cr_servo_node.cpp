@@ -63,7 +63,6 @@ public:
             std::chrono::milliseconds(this->time_pub_state_),
             [this]()
             {
-                // this->ReadState();
                 this->pubState();
                 this->WriteCommand();
             });

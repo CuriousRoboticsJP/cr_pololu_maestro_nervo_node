@@ -46,19 +46,6 @@ public:
         /// The address (in bytes) of the next bytecode instruction that will be executed.
         uint16_t programCounter;
 
-        // /// Meaningless bytes to protect the program from stack underflows.
-        // /// <remarks>This is public to avoid mono warning CS0169.</remarks>
-        // int16_t buffer[3];
-
-        // /// The data stack used by the script.  The values in locations 0 through stackPointer-1
-        // /// are on the stack.
-        // int16_t stack[32];
-
-        // /// The call stack used by the script.  The addresses in locations 0 through
-        // /// callStackPointer-1 are on the call stack.  The next return will make the
-        // /// program counter go to callStack[callStackPointer-1].
-        // uint16_t callStack[10];
-
         /// 0 = script is running.
         /// 1 = script is done.
         /// 2 = script will be done as soon as it executes one more instruction
